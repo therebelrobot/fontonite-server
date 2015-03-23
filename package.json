@@ -18,7 +18,7 @@
     "conversion"
   ],
   "author": "Trent Oswald <trentoswald@therebelrobot.com>",
-  "license": "Proprietary",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/therebelrobot/fontonite-server/issues"
   },

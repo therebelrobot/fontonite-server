@@ -45,6 +45,9 @@ module.exports = {
     }
     var file = req.files.font
     var fileType = file.name.split('.')
+    var ipaddress = req.connection.remoteAddress
+    ipaddress = ipaddress.split('.').join('-').split(':').join('_')
+    console.log(ipaddress)
     fileType = fileType[fileType.length - 1].toLowerCase();
     if (fileType !== 'otf' && fileType !== 'ttf' && fileType !== 'woff' && fileType !== 'svg' && fileType !== 'eot') {
       res.send(400, {
@@ -77,8 +80,10 @@ module.exports = {
       // res.send(content, {
         // 'Content-Type': 'application/zip'
       // })
-      fs.writeFile('webfont-'+date+'.zip', content, function(err) {
-        if (err) throw err;
+      fs.writeFile('server/tmp/webfont-'+ipaddress+'-'+date+'.zip', content, function(err) {
+        if (err) res.send(500,{error:true, message:'There was an error saving the archive. Please try again later.'});
+        console.log('Save complete.','tmp/webfont-'+ipaddress+'-'+date+'.zip')
+        res.send(200,{conversion:'success', data:{url:'tmp/webfont-'+ipaddress+'-'+date+'.zip'}})
       });
     }
     var errorHandler = function (error) {
