@@ -83,7 +83,10 @@ module.exports = {
       fs.writeFile('server/tmp/webfont-'+ipaddress+'-'+date+'.zip', content, function(err) {
         if (err) res.send(500,{error:true, message:'There was an error saving the archive. Please try again later.'});
         console.log('Save complete.','tmp/webfont-'+ipaddress+'-'+date+'.zip')
-        res.send(200,{conversion:'success', data:{url:'tmp/webfont-'+ipaddress+'-'+date+'.zip'}})
+        res.send(200,{conversion:'success', data:{
+          expires:moment().add(5,'minutes').format('X'),
+          url:'http://fontonite.therebelrobot.com/tmp/webfont-'+ipaddress+'-'+date+'.zip'
+        }})
       });
     }
     var errorHandler = function (error) {
