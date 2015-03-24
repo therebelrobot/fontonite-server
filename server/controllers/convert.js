@@ -26,6 +26,10 @@ var _ = require('lodash')
 var JSZip = require('jszip')
 var fs = require('fs')
 
+var ttf2web = require('../utils/ttf2web')
+var otf2ttf = require('../utils/otf2ttf')
+var eot2ttf, woff2ttf, svg2ttf;
+
 module.exports = {
   // POST to /convert with form-multipart, font= .ttf or .otf font file
   convert: function convertController(req, res, done) {
@@ -104,8 +108,8 @@ module.exports = {
     case 'ttf':
       ttf2web(file).then(createArchive).catch(errorHandler)
       break
-    case 'otf':
-      otf2web(file).then(createArchive).catch(errorHandler)
+    case 'eot':
+      eot2web(file).then(createArchive).catch(errorHandler)
       break
     case 'svg':
       svg2web(file).then(createArchive).catch(errorHandler)
@@ -150,56 +154,5 @@ function otf2ttf(file) {
         resolve(ttf2web(file))
       })
 
-  })
-}
-
-function ttf2web(file) {
-  return new Promise(function (resolve, reject) {
-    var conversionSuccess = function () {
-      var otherfiles = file.path
-      if (otherfiles.indexOf('.ttf') > -1) {
-        otherfiles = file.path.split('.ttf')[0]
-      }
-      var newFiles = {
-        eot: otherfiles + '.eot',
-        woff: otherfiles + '.woff',
-        svg: otherfiles + '.svg',
-        ttf: file.path
-      }
-      resolve(newFiles);
-    }
-    exec('webify ' + file.path,
-      function (error, stdout, stderr) {
-        if (error !== null) {
-          reject(error)
-          return
-        }
-        if (stderr !== '') {
-          reject(stderr)
-          return
-        }
-        conversionSuccess()
-      });
-  })
-}
-
-function otf2web(file) {
-  return new Promise(function (resolve, reject) {
-    var newFilePath
-    resolve(ttf2web(newFilePath))
-  })
-}
-
-function svg2web(file) {
-  return new Promise(function (resolve, reject) {
-    var newFilePath
-    resolve(ttf2web(newFilePath))
-  })
-}
-
-function woff2web(file) {
-  return new Promise(function (resolve, reject) {
-    var newFilePath
-    resolve(ttf2web(newFilePath))
   })
 }
