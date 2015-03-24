@@ -47,7 +47,7 @@ module.exports = {
         conversion: 'success',
         data: {
           expires: moment().add(5, 'minutes').format('X'),
-          url: 'http://fontonite.therebelrobot.com/tmp/' + filename
+          url: 'http://fontonite.therebelrobot.com/' + filename
         }
       })
     }
