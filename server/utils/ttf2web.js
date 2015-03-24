@@ -18,18 +18,19 @@
  */
 
 
-var exec=require('child_process').exec
+var exec = require('child_process').exec
 var _ = require('lodash')
 
-module.exports = function ttf2webUtil(file){
+module.exports = function ttf2webUtil(file) {
   return new Promise(function (resolve, reject) {
     var conversionSuccess = function () {
       var otherfiles = file.path
       if (otherfiles.indexOf('.ttf') > -1) {
         otherfiles = file.path.split('.ttf')[0]
       }
+      var newOrig = _.cloneDeep(file)
       var newFiles = {
-        original: _.cloneDeep(file),
+        original: newOrig,
         eot: otherfiles + '.eot',
         woff: otherfiles + '.woff',
         svg: otherfiles + '.svg',

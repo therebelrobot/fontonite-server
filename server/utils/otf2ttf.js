@@ -31,18 +31,17 @@ module.exports = function otf2ttfUtil(file) {
     folder = folder.join('/')
     var relPath = path.relative(process.cwd(), file.path)
     var relFolder = path.relative(process.cwd(), folder)
-    var fontName
     vinyl.src(relPath)
       .pipe(otf2ttfGulp())
-      .pipe(vinyl.dest(function (file) {
-        file.fontName = file.data.fontName
-        var newRelFilePath = relFolder + '/' + file.data.fontName
+      .pipe(vinyl.dest(function (thisfile) {
+        file.fontName = thisfile.data.fontName || file.name.split('.')[0]
+        var newRelFilePath = relFolder + '/' + file.fontName
         return newRelFilePath
       }))
       .on('end', function () {
-        var newFilePath = folder + '/' + fontName + '.ttf';
+        var newFilePath = folder + '/' + file.fontName + '.ttf';
         file.path = newFilePath
-        resolve(ttf2web(file))
+        resolve(file)
       })
 
   })
