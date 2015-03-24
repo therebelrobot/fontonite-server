@@ -19,12 +19,12 @@
 
 
 var path = require('path')
-var vinyl =require('vinyl-fs')
+var vinyl = require('vinyl-fs')
 var otf2ttfGulp = require('otf2ttf')
 
 var ttf2web = require('./ttf2web')
 
-module.exports = function otf2ttfUtil(file){
+module.exports = function otf2ttfUtil(file) {
   return new Promise(function (resolve, reject) {
     var folder = file.path.split('/')
     var tempFile = folder.pop()
@@ -35,7 +35,7 @@ module.exports = function otf2ttfUtil(file){
     vinyl.src(relPath)
       .pipe(otf2ttfGulp())
       .pipe(vinyl.dest(function (file) {
-        fontName = file.data.fontName
+        file.fontName = file.data.fontName
         var newRelFilePath = relFolder + '/' + file.data.fontName
         return newRelFilePath
       }))

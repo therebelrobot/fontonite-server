@@ -18,36 +18,29 @@
  */
 
 
-var exec=require('child_process').exec
-var _ = require('lodash')
-
-module.exports = function ttf2webUtil(file){
+module.exports = function verifyFileUtil(files) {
   return new Promise(function (resolve, reject) {
-    var conversionSuccess = function () {
-      var otherfiles = file.path
-      if (otherfiles.indexOf('.ttf') > -1) {
-        otherfiles = file.path.split('.ttf')[0]
-      }
-      var newFiles = {
-        original: _.cloneDeep(file),
-        eot: otherfiles + '.eot',
-        woff: otherfiles + '.woff',
-        svg: otherfiles + '.svg',
-        ttf: file.path
-      }
-      resolve(newFiles);
+    if (!files) {
+      reject('No file was found in POST parameters. Please send a font to convert.')
     }
-    exec('webify ' + file.path,
-      function (error, stdout, stderr) {
-        if (error !== null) {
-          reject(error)
-          return
-        }
-        if (stderr !== '') {
-          reject(stderr)
-          return
-        }
-        conversionSuccess()
-      });
+    else if (!files.font) {
+      reject('A file was included, but was not named appropriately. Please name your parameter "font" when uploading.')
+    }
+    else {
+      var file = files.font
+      var fileType = file.name.split('.')
+      file.fileType = fileType[fileType.length - 1].toLowerCase();
+      if (file.fileType !== 'otf' &&
+          file.fileType !== 'ttf' &&
+          file.fileType !== 'woff' &&
+          file.fileType !== 'svg' &&
+          file.fileType !== 'eot') {
+        reject('Wrong format. Please only upload otf, ttf, woff, svg, or eot files.')
+      }
+      if (file.size > 100000000) {
+        reject('File too big. Please keep file sizes below 100M')
+      }
+      resolve(file);
+    }
   })
 }

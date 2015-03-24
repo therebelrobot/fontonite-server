@@ -30,95 +30,50 @@ var ttf2web = require('../utils/ttf2web')
 var otf2ttf = require('../utils/otf2ttf')
 var eot2ttf, woff2ttf, svg2ttf;
 
+var verifyFile = require('../utils/verify-file')
+var createArchive = require('../utils/create-archive')
+
 module.exports = {
   // POST to /convert with form-multipart, font= .ttf or .otf font file
   convert: function convertController(req, res, done) {
-    if (!req.files) {
-      res.send(400, {
-        error: true,
-        message: 'No file was found in POST parameters. Please send a font to convert.'
-      })
-      return
-    }
-    else if (!req.files.font) {
-      res.send(400, {
-        error: true,
-        message: 'A file was included, but was not named appropriately. Please name your parameter "font" when uploading.'
-      })
-      return
-    }
-    var file = req.files.font
-    var fileType = file.name.split('.')
-    var ipaddress = req.connection.remoteAddress
-    ipaddress = ipaddress.split('.').join('-').split(':').join('_')
-    console.log(ipaddress)
-    fileType = fileType[fileType.length - 1].toLowerCase();
-    if (fileType !== 'otf' && fileType !== 'ttf' && fileType !== 'woff' && fileType !== 'svg' && fileType !== 'eot') {
-      res.send(400, {
-        error: true,
-        message: 'Wrong format. Please only upload otf, ttf, woff, svg, or eot files.'
-      })
-    }
-    if (file.size > 100000000) {
-      res.send(400, {
-        error: true,
-        message: 'File too big. Please keep file sizes below 100M'
-      })
-    }
-    var createArchive = function (files) {
-      var fontFiles = _.values(files);
-      var date = moment().format('YYYY-MM-DD-HHmmss')
-      var filename = file.name.split('.')[0];
-      var zip = new JSZip();
-
-      zip.file("legal.txt", "The use of this tool constitutes acknowlegement that you have legally obtained the rights to copy/convert/display this font. Please ensure you follow all necessary legal procedures to properly convert this font.");
-
-      var fonts = zip.folder(filename);
-      fonts.file(filename+'.ttf', fs.readFileSync(files.ttf, {encoding:'base64'}), {base64: true});
-      fonts.file(filename+'.eot', fs.readFileSync(files.eot, {encoding:'base64'}), {base64: true});
-      fonts.file(filename+'.svg', fs.readFileSync(files.svg, {encoding:'base64'}), {base64: true});
-      fonts.file(filename+'.woff', fs.readFileSync(files.woff, {encoding:'base64'}), {base64: true});
-
-
-      var content = zip.generate({type:"nodebuffer"});
-      // res.send(content, {
-        // 'Content-Type': 'application/zip'
-      // })
-      fs.writeFile('server/tmp/webfont-'+ipaddress+'-'+date+'.zip', content, function(err) {
-        if (err) res.send(500,{error:true, message:'There was an error saving the archive. Please try again later.'});
-        console.log('Save complete.','tmp/webfont-'+ipaddress+'-'+date+'.zip')
-        res.send(200,{conversion:'success', data:{
-          expires:moment().add(5,'minutes').format('X'),
-          url:'http://fontonite.therebelrobot.com/tmp/webfont-'+ipaddress+'-'+date+'.zip'
-        }})
-      });
-    }
-    var errorHandler = function (error) {
-      console.log('errorHandler', error)
+    var sendError = function (error) {
       res.send(500, {
         error: true,
         message: error
       })
-      return
     }
-    switch (fileType) {
-    case 'otf':
-      otf2ttf(file).then(createArchive).catch(errorHandler)
-      break
-    case 'ttf':
-      ttf2web(file).then(createArchive).catch(errorHandler)
-      break
-    case 'eot':
-      eot2web(file).then(createArchive).catch(errorHandler)
-      break
-    case 'svg':
-      svg2web(file).then(createArchive).catch(errorHandler)
-      break
-    case 'woff':
-      woff2web(file).then(createArchive).catch(errorHandler)
-      break
+    var sendSuccess = function (filename) {
+      res.send(200, {
+        conversion: 'success',
+        data: {
+          expires: moment().add(5, 'minutes').format('X'),
+          url: 'http://fontonite.therebelrobot.com/tmp/' + filename
+        }
+      })
     }
-    return
+    verifyFile(req.files).then(function (file) {
+        var fileType = file.fileType;
+        file.ipaddress = req.connection.remoteAddress
+        switch (fileType) {
+        case 'otf':
+          otf2ttf(file).then(ttf2web).then(createArchive).then(sendSuccess).catch(sendError)
+          break
+        case 'ttf':
+          ttf2web(file).then(createArchive).then(sendSuccess).catch(sendError)
+          break
+        case 'eot':
+          eot2web(file).then(ttf2web).then(createArchive).then(sendSuccess).catch(sendError)
+          break
+        case 'svg':
+          svg2web(file).then(ttf2web).then(createArchive).then(sendSuccess).catch(sendError)
+          break
+        case 'woff':
+          woff2web(file).then(ttf2web).then(createArchive).then(sendSuccess).catch(sendError)
+          break
+        }
+
+      })
+      .catch(sendError)
   },
   legal: function legalmumbojumbo(req, res, done) {
     res.send(200, {
@@ -131,28 +86,4 @@ module.exports = {
                    to ensure your appropriate use of the font you upload.`
     })
   }
-}
-
-function otf2ttf(file) {
-  return new Promise(function (resolve, reject) {
-    var folder = file.path.split('/')
-    var tempFile = folder.pop()
-    folder = folder.join('/')
-    var relPath = path.relative(process.cwd(), file.path)
-    var relFolder = path.relative(process.cwd(), folder)
-    var fontName
-    vinyl.src(relPath)
-      .pipe(otf2ttfGulp())
-      .pipe(vinyl.dest(function (file) {
-        fontName = file.data.fontName
-        var newRelFilePath = relFolder + '/' + file.data.fontName
-        return newRelFilePath
-      }))
-      .on('end', function () {
-        var newFilePath = folder + '/' + fontName + '.ttf';
-        file.path = newFilePath
-        resolve(ttf2web(file))
-      })
-
-  })
 }
