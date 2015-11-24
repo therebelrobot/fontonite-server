@@ -37,12 +37,14 @@ module.exports = {
   // POST to /convert with form-multipart, font= .ttf or .otf font file
   convert: function convertController(req, res, done) {
     var sendError = function (error) {
+      console.log('down to send error', error)
       res.send(500, {
         error: true,
         message: error
       })
     }
     var sendSuccess = function (filename) {
+      console.log('down to send request')
       res.send(200, {
         conversion: 'success',
         data: {
@@ -51,6 +53,7 @@ module.exports = {
         }
       })
     }
+    console.log('down to verify')
     verifyFile(req.files).then(function (file) {
         var fileType = file.fileType;
         file.ipaddress = req.connection.remoteAddress

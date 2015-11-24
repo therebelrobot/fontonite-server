@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "develop": "./node_modules/nodemon/bin/nodemon.js app.js",
-    "test": "./node_modules/standard/bin/cmd.js && ./node_modules/istanbul/lib/cli.js cover _mocha --"
+    "test": "./node_modules/standard/bin/cmd.js && ./node_modules/istanbul/lib/cli.js cover _mocha --",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
