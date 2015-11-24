@@ -23,6 +23,8 @@ var convertFont = require('./controllers/convert')
 
 var server = restify.createServer()
 
+var port = process.env.PORT || 8081
+
 server.use(restify.authorizationParser())
 server.use(restify.queryParser())
 server.use(restify.bodyParser())
@@ -34,6 +36,6 @@ server.use(function crossOrigin(req, res, next) {
 server.get('/legal', convertFont.legal)
 server.post('/convert', convertFont.convert)
 
-server.listen(8081, function serverListen() {
-  console.log('%s listening at %s', server.name, server.url)
+server.listen(port, function serverListen() {
+  console.log('%s listening at %s on port %s', server.name, server.url, port)
 })
