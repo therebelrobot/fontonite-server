@@ -39,7 +39,7 @@ module.exports = function ttf2webUtil(file) {
       resolve(newFiles);
     }
     console.log(file.path)
-    exec('webify ' + file.path,
+    exec('./webify ' + file.path,
       function (error, stdout, stderr) {
         if (error !== null) {
           console.log('error on convert')
